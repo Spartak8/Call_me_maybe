@@ -2,7 +2,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
-
+from llm_sdk import Small_LLM_Model
 from pydantic import BaseModel, ValidationError
 
 
@@ -74,6 +74,22 @@ def validate_prompts(
         return None
 
 
+def build_llm_prompt(
+    prompt: PromptInput,
+    functions: list[FunctionDefinition],
+) -> str:
+    text = "Available functions:\n"
+
+    for function in functions:
+        text += f"- {function.name}: {function.description}\n"
+        text += f"  Parameters: {function.parameters}\n"
+
+    text += f"\nUser request: {prompt.prompt}\n"
+    text += "Choose the correct function and its parameters."
+
+    return text
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -107,6 +123,11 @@ def main() -> None:
 
     print(f"Loaded {len(functions)} functions")
     print(f"Loaded {len(prompts)} prompts")
+
+    model = Small_LLM_Model()
+    print("LLM good")
+    llm_prompt = build_llm_prompt(prompts[0], functions)
+    print(llm_prompt)
 
 
 if __name__ == "__main__":
