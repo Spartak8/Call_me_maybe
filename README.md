@@ -94,7 +94,7 @@ make clean
 1. **Multiple LLM Model Support**: Configurable via `--model_name <model_id>` CLI parameter, supporting alternative models (such as `Qwen/Qwen2.5-0.5B`, `Qwen/Qwen2.5-1.5B`, etc.).
 2. **Recoded Custom Tokenizer (`src/tokenizer.py`)**: Implements token-level mapping and decoding methods directly from `vocab.json` using `get_path_to_vocab_file()`.
 3. **Advanced Error Recovery & Fallbacks**: Comprehensive error protection in IO handling and decoding pipeline ensuring non-crashing behavior under corrupted inputs or missing schema fields.
-4. **Real-time Terminal Output & Progress Visualization**: Displays per-prompt function resolution progress in real time alongside full JSON output at completion.
+4. **Real-time Terminal Output & Progress Visualization**: Displays per-prompt function resolution and parameter extraction in real time.
 5. **Comprehensive Test Suite**: Automated unit and integration tests covering Pydantic models, prefix tries, tokenizer, and IO operations.
 
 ---

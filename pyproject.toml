@@ -1,7 +1,7 @@
 [project]
 name = "call-me-maybe"
 version = "0.1.0"
-description = "Add your description here"
+description = "Function calling in lightweight LLMs via constrained decoding"
 readme = "README.md"
 authors = [
     { name = "skhachat" }

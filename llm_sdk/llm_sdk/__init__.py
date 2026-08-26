@@ -87,10 +87,10 @@ class Small_LLM_Model:
     def get_logits_from_input_ids(self, input_ids: list[int]) -> list[float]:
         """Given a list of token ids, return raw logits for next token."""
         input_tensor = torch.tensor(
-
             [input_ids], device=self._device, dtype=torch.long
         )
         with torch.no_grad():
+
             out = self._model(input_ids=input_tensor)
         logits = out.logits[0, -1].tolist()
         return [float(x) for x in logits]
