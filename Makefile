@@ -8,9 +8,9 @@ debug:
 	uv run python -m pdb -m src
 
 clean:
-	rm -rf `find . -type d -name __pycache__`
-	rm -rf `find . -type d -name .mypy_cache`
-	rm -rf `find . -type d -name .pytest_cache`
+	find . -type d -name __pycache__ -exec rm -rf {} +
+	find . -type d -name .mypy_cache -exec rm -rf {} +
+	find . -type d -name .pytest_cache -exec rm -rf {} +
 	rm -rf data/output/*.json
 
 lint:

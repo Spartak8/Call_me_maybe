@@ -130,8 +130,8 @@ make clean
   - Prefix Trie insertion, token branch matching, and terminal detection tests.
   - Custom Tokenizer vocabulary decoding tests.
   - I/O handler tests verifying graceful handling of missing files, malformed JSON, and invalid schemas.
-- **Integration Testing**:
-  - Full end-to-end execution against `data/input/functions_definition.json` and `data/input/function_calling_tests.json`.
+- **Manual Integration Testing**:
+  - Full end-to-end verification via `make run` against `data/input/functions_definition.json` and `data/input/function_calling_tests.json`.
   - Static type checking with `mypy --strict` and style verification with `flake8`.
 
 ---

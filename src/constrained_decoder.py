@@ -76,7 +76,9 @@ class ConstrainedDecoder(BaseModel):
         current_node: TrieNode = trie.root
         curr_input_ids = list(input_ids)
 
-        while not current_node.is_terminal:
+        while True:
+            if current_node.is_terminal and not current_node.children:
+                break
             valid_next = trie.get_valid_next_tokens(current_node)
             if not valid_next:
                 break
@@ -84,7 +86,9 @@ class ConstrainedDecoder(BaseModel):
                 chosen_token = valid_next[0]
             else:
                 logits = model.get_logits_from_input_ids(curr_input_ids)
-                chosen_token = max(valid_next, key=lambda tid: logits[tid])
+                chosen_token = max(
+                    valid_next, key=lambda tid: logits[tid]
+                )
 
             curr_input_ids.append(chosen_token)
             child = trie.advance(current_node, chosen_token)

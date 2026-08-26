@@ -1,5 +1,8 @@
-# ABOUTME: LLM SDK for local inference with Hugging Face models.
-# ABOUTME: Provides Small_LLM_Model class for causal language models.
+"""LLM SDK for local inference with Hugging Face models.
+
+Provides Small_LLM_Model class for loading and running causal language models.
+"""
+
 
 import torch
 
