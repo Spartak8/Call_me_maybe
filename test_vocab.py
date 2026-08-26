@@ -1,9 +1,11 @@
-import json
+"""Script for inspecting model vocabulary structure."""
 
+import json
 from llm_sdk import Small_LLM_Model
 
 
 def main() -> None:
+    """Load and print model vocabulary sample."""
     model = Small_LLM_Model()
     vocab_path = model.get_path_to_vocab_file()
 

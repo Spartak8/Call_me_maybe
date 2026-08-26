@@ -21,11 +21,13 @@ class TestModels(unittest.TestCase):
     """Test Pydantic model validation."""
 
     def test_function_parameter_valid(self) -> None:
+        """Verify FunctionParameter validates correct type and description."""
         param = FunctionParameter(type="string", description="A string")
         self.assertEqual(param.type, "string")
         self.assertEqual(param.description, "A string")
 
     def test_function_definition_valid(self) -> None:
+        """Verify FunctionDefinition validates parameters dictionary."""
         fn = FunctionDefinition(
             name="fn_test",
             description="Test function",
@@ -35,10 +37,12 @@ class TestModels(unittest.TestCase):
         self.assertIn("a", fn.parameters)
 
     def test_prompt_input_valid(self) -> None:
+        """Verify that PromptInput stores the input prompt string."""
         inp = PromptInput(prompt="Hello world")
         self.assertEqual(inp.prompt, "Hello world")
 
     def test_function_call_result_valid(self) -> None:
+        """Verify FunctionCallResult stores resolved function call."""
         res = FunctionCallResult(
             prompt="Test",
             name="fn_test",
@@ -48,6 +52,7 @@ class TestModels(unittest.TestCase):
         self.assertEqual(res.parameters["a"], 42.0)
 
     def test_function_call_result_extra_forbidden(self) -> None:
+        """Verify that extra undeclared keys are forbidden by validation."""
         with self.assertRaises(ValidationError):
             FunctionCallResult.model_validate(
                 {"prompt": "x", "name": "fn", "parameters": {}, "extra": 1}
@@ -58,6 +63,7 @@ class TestPrefixTrie(unittest.TestCase):
     """Test token prefix trie behavior."""
 
     def test_trie_insertion_and_traversal(self) -> None:
+        """Verify Trie insertion, branch retrieval, and terminal nodes."""
         trie = PrefixTrie()
         trie.insert([10, 20, 30], "fn_a")
         trie.insert([10, 20, 40], "fn_b")
@@ -90,13 +96,16 @@ class TestIOHandler(unittest.TestCase):
     """Test input/output handling and error resilience."""
 
     def setUp(self) -> None:
+        """Set up IOHandler instance before each test."""
         self.handler = IOHandler()
 
     def test_load_nonexistent_file(self) -> None:
+        """Verify loading non-existent file returns None gracefully."""
         res = self.handler.load_functions(Path("/nonexistent/path.json"))
         self.assertIsNone(res)
 
     def test_load_invalid_json(self) -> None:
+        """Verify that malformed JSON is handled gracefully."""
         with tempfile.NamedTemporaryFile(
             "w", delete=False, suffix=".json"
         ) as tmp:
@@ -109,6 +118,7 @@ class TestIOHandler(unittest.TestCase):
             tmp_path.unlink()
 
     def test_load_invalid_schema(self) -> None:
+        """Verify that non-compliant schemas are rejected gracefully."""
         with tempfile.NamedTemporaryFile(
             "w", delete=False, suffix=".json"
         ) as tmp:
@@ -121,6 +131,7 @@ class TestIOHandler(unittest.TestCase):
             tmp_path.unlink()
 
     def test_save_and_load_results(self) -> None:
+        """Verify saving results to JSON file and reading them back."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             out_path = Path(tmp_dir) / "output" / "results.json"
             results = [
@@ -144,6 +155,7 @@ class TestCustomTokenizer(unittest.TestCase):
     """Test custom tokenizer implementation."""
 
     def test_custom_tokenizer_decode(self) -> None:
+        """Verify token decoding via custom tokenizer."""
         tok = CustomTokenizer(
             vocab={"Hello": 0, "Ġworld": 1},
             inverse_vocab={0: "Hello", 1: "Ġworld"},

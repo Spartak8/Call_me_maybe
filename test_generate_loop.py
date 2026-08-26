@@ -1,7 +1,10 @@
+"""Script for testing multi-step token generation loop."""
+
 from llm_sdk import Small_LLM_Model
 
 
 def main() -> None:
+    """Generate a sequence of tokens autoregressively."""
     model = Small_LLM_Model()
 
     prompt = "The capital of France is"

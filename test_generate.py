@@ -1,7 +1,10 @@
+"""Script for testing single token generation step."""
+
 from llm_sdk import Small_LLM_Model
 
 
 def main() -> None:
+    """Predict single next token from input prompt."""
     model = Small_LLM_Model()
 
     prompt = "The capital of France is"

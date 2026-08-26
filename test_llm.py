@@ -1,7 +1,10 @@
+"""Script for testing Small_LLM_Model encoding and logits retrieval."""
+
 from llm_sdk import Small_LLM_Model
 
 
 def main() -> None:
+    """Execute basic LLM model inference and vocabulary checks."""
     model = Small_LLM_Model()
 
     text = "Hello"

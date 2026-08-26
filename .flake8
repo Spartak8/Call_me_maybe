@@ -5,5 +5,4 @@ exclude =
     __pycache__,
     .venv,
     .mypy_cache,
-    .pytest_cache,
-    llm_sdk
+    .pytest_cache
