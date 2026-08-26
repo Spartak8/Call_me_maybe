@@ -1,133 +1,113 @@
+"""Entry point for the Function Calling CLI application.
+
+Processes input prompts and generates schema-compliant function calls.
+"""
+
 import argparse
 import json
 import sys
 from pathlib import Path
+from typing import List
+
 from llm_sdk import Small_LLM_Model
-from pydantic import BaseModel, ValidationError
+from src.constrained_decoder import ConstrainedDecoder
+from src.io_handler import IOHandler
+from src.models import FunctionCallResult
 
 
-class FunctionParameter(BaseModel):
-    type: str
+def parse_arguments() -> argparse.Namespace:
+    """Parse command line arguments.
 
-
-class FunctionDefinition(BaseModel):
-    name: str
-    description: str
-    parameters: dict[str, FunctionParameter]
-    returns: FunctionParameter
-
-
-class PromptInput(BaseModel):
-    prompt: str
-
-
-class FunctionCallResult(BaseModel):
-    prompt: str
-    name: str
-    parameters: dict[str, object]
-
-
-def load_json(path: Path) -> list[dict[str, object]] | None:
-    try:
-        with path.open("r", encoding="utf-8") as file:
-            data = json.load(file)
-    except FileNotFoundError:
-        print(f"Error: file not found: {path}")
-        return None
-    except json.JSONDecodeError:
-        print(f"Error: invalid JSON: {path}")
-        return None
-    except OSError as error:
-        print(f"Error: cannot read {path}: {error}")
-        return None
-
-    if not isinstance(data, list):
-        print(f"Error: expected JSON array: {path}")
-        return None
-
-    return data
-
-
-def validate_functions(
-    data: list[dict[str, object]],
-) -> list[FunctionDefinition] | None:
-    try:
-        return [
-            FunctionDefinition.model_validate(item)
-            for item in data
-        ]
-    except ValidationError as error:
-        print(f"Error: invalid function definition: {error}")
-        return None
-
-
-def validate_prompts(
-    data: list[dict[str, object]],
-) -> list[PromptInput] | None:
-    try:
-        return [
-            PromptInput.model_validate(item)
-            for item in data
-        ]
-    except ValidationError as error:
-        print(f"Error: invalid prompt: {error}")
-        return None
-
-
-def build_llm_prompt(
-    prompt: PromptInput,
-    functions: list[FunctionDefinition],
-) -> str:
-    text = "Available functions:\n"
-
-    for function in functions:
-        text += f"- {function.name}: {function.description}\n"
-        text += f"  Parameters: {function.parameters}\n"
-
-    text += f"\nUser request: {prompt.prompt}\n"
-    text += "Choose the correct function and its parameters."
-
-    return text
-
-
-def main() -> None:
-    parser = argparse.ArgumentParser()
+    Returns:
+        Parsed arguments namespace.
+    """
+    parser = argparse.ArgumentParser(
+        description="Function calling with constrained decoding."
+    )
     parser.add_argument(
         "--functions_definition",
         type=Path,
         default=Path("data/input/functions_definition.json"),
+        help="Path to the function definitions JSON file.",
     )
     parser.add_argument(
         "--input",
         type=Path,
         default=Path("data/input/function_calling_tests.json"),
+        help="Path to the input prompts JSON file.",
     )
     parser.add_argument(
         "--output",
         type=Path,
         default=Path("data/output/function_calling_results.json"),
+        help="Path to write the resulting JSON array.",
     )
-    args = parser.parse_args()
+    parser.add_argument(
+        "--model_name",
+        type=str,
+        default="Qwen/Qwen3-0.6B",
+        help="Name or path of the LLM model to load.",
+    )
+    return parser.parse_args()
 
-    raw_functions = load_json(args.functions_definition)
-    raw_prompts = load_json(args.input)
 
-    if raw_functions is None or raw_prompts is None:
+def main() -> None:
+    """Execute the main function calling pipeline."""
+    args = parse_arguments()
+    io_handler = IOHandler()
+
+    functions = io_handler.load_functions(args.functions_definition)
+    if functions is None:
         sys.exit(1)
 
-    functions = validate_functions(raw_functions)
-    prompts = validate_prompts(raw_prompts)
-
-    if functions is None or prompts is None:
+    prompts = io_handler.load_prompts(args.input)
+    if prompts is None:
         sys.exit(1)
 
-    print(f"Loaded {len(functions)} functions")
-    print(f"Loaded {len(prompts)} prompts")
+    print(f"Loaded {len(functions)} functions and {len(prompts)} prompts.\n")
 
-    model = Small_LLM_Model()
-    print("LLM good")
-    llm_prompt = build_llm_prompt(prompts[0], functions)
-    print(llm_prompt)
+    try:
+        model = Small_LLM_Model(model_name=args.model_name)
+    except Exception as err:
+        print(f"Error: Failed to initialize LLM model: {err}", file=sys.stderr)
+        sys.exit(1)
+
+    decoder = ConstrainedDecoder()
+    results: List[FunctionCallResult] = []
+
+    for idx, prompt_input in enumerate(prompts, start=1):
+        print(f"[{idx}/{len(prompts)}] Prompt: {prompt_input.prompt}")
+        try:
+            res = decoder.process_prompt(
+                model=model,
+                prompt_input=prompt_input,
+                functions=functions,
+            )
+            results.append(res)
+            print(f" -> Function  : {res.name}")
+            print(f" -> Parameters: {json.dumps(res.parameters)}")
+            print()
+        except Exception as err:
+            print(
+                f"Error processing prompt '{prompt_input.prompt}': {err}",
+                file=sys.stderr,
+            )
+            fallback_res = FunctionCallResult(
+                prompt=prompt_input.prompt,
+                name=functions[0].name,
+                parameters={},
+            )
+            results.append(fallback_res)
+            print(f" -> Fallback Function: {fallback_res.name}\n")
+
+    saved = io_handler.save_results(args.output, results)
+    if not saved:
+        sys.exit(1)
+
+    print(
+        f"Successfully generated {len(results)} function call results "
+        f"to '{args.output}'"
+    )
 
 
 if __name__ == "__main__":

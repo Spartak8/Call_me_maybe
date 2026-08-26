@@ -84,7 +84,7 @@ class Small_LLM_Model:
         """Inverse of :py:meth:`encode`. Removes special tokens."""
         if isinstance(ids, torch.Tensor):
             ids = ids.tolist()
-        return self._tokenizer.decode(ids, skip_special_tokens=True)
+        return str(self._tokenizer.decode(ids, skip_special_tokens=True))
 
 
     def get_logits_from_input_ids(self, input_ids: list[int]) -> list[float]:
@@ -105,7 +105,7 @@ class Small_LLM_Model:
             repo_id=self._model_name,
             filename=vocab_file_name
         )
-        return vocab_path
+        return str(vocab_path)
 
 
     def get_path_to_merges_file(self) -> str:
@@ -114,7 +114,7 @@ class Small_LLM_Model:
             repo_id=self._model_name,
             filename=merges_file_name
         )
-        return merges_path
+        return str(merges_path)
 
 
     def get_path_to_tokenizer_file(self) -> str:
@@ -123,4 +123,5 @@ class Small_LLM_Model:
             repo_id=self._model_name,
             filename=tokenizer_file_name
         )
-        return tokenizer_path
+        return str(tokenizer_path)
+
