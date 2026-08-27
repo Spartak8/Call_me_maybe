@@ -163,6 +163,19 @@ class TestCustomTokenizer(unittest.TestCase):
         self.assertEqual(tok.decode_token_id(0), "Hello")
         self.assertEqual(tok.decode_token_ids([0, 1]), "Hello world")
 
+    def test_custom_tokenizer_from_vocab_file(self) -> None:
+        """Verify loading tokenizer from vocab JSON file."""
+        with tempfile.NamedTemporaryFile(
+            "w", delete=False, suffix=".json"
+        ) as tmp:
+            tmp.write(json.dumps({"Hello": 0, "Ġworld": 1}))
+            tmp_path = tmp.name
+        try:
+            tok = CustomTokenizer.from_vocab_file(tmp_path)
+            self.assertEqual(tok.decode_token_ids([0, 1]), "Hello world")
+        finally:
+            Path(tmp_path).unlink()
+
 
 if __name__ == "__main__":
     unittest.main()
